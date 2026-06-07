@@ -290,7 +290,7 @@ function calcNPS() {
     return;
   }
 
-  const need = Math.ceil((target/100 * total - P + D) / (1 - target/100));
+  const need = Math.ceil((target * total - (P - D) * 100) / (100 - target));
   needEl.textContent = need < 0 ? '—' : need;
   needEl.className = 'rnum';
 }
