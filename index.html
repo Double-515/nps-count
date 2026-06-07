@@ -253,11 +253,19 @@
   </div>
 
 <script>
+function saveAll() {
+  ['npsScore','npsTarget','npsP','npsPa','npsD'].forEach(id => {
+    localStorage.setItem('nps_' + id, document.getElementById(id).value);
+  });
+}
+
 function calcNPS() {
   const target = parseFloat(document.getElementById('npsTarget').value) || 0;
   const P = parseFloat(document.getElementById('npsP').value) || 0;
   const Pa = parseFloat(document.getElementById('npsPa').value) || 0;
   const D = parseFloat(document.getElementById('npsD').value) || 0;
+
+  saveAll();
 
   const total = P + Pa + D;
   document.getElementById('respValue').textContent = total || '—';
@@ -284,9 +292,15 @@ function resetAll() {
   document.getElementById('npsScore').value = '';
   document.getElementById('npsTarget').value = '';
   ['npsP','npsPa','npsD'].forEach(id => document.getElementById(id).value = '0');
+  saveAll();
   calcNPS();
 }
 
+// 恢复保存的值（每个用户存在自己手机上，互不干扰）
+['npsScore','npsTarget','npsP','npsPa','npsD'].forEach(id => {
+  const v = localStorage.getItem('nps_' + id);
+  if (v !== null) document.getElementById(id).value = v;
+});
 calcNPS();
 </script>
 </body>
