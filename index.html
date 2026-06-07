@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>NPS Count</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  :root {
+    --blue: #0071E3;
+    --green: #30D158;
+    --orange: #FF9F0A;
+    --red: #FF6961;
+    --dark: #1D1D1F;
+    --gray2: #6E6E73;
+    --gray3: #86868B;
+    --gray4: #D2D2D7;
+    --gray5: #F5F5F7;
+    --gray6: #FBFBFD;
+    --white: #FFFFFF;
+  }
+
+  body {
+    font-family: 'SF Pro Display', 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    background: var(--gray6);
+    color: var(--dark);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    display: flex; flex-direction: column; align-items: center;
+    min-height: 100vh; min-height: -webkit-fill-available;
+    -webkit-text-size-adjust: 100%;
+    overflow-x: hidden;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    width: 100%;
+    background: linear-gradient(180deg, #FAFAFA 0%, var(--gray6) 100%);
+    padding: 48px 20px 28px;
+    text-align: center;
+    border-bottom: 1px solid var(--gray4);
+  }
+  .hero h1 {
+    font-size: 34px; font-weight: 700; letter-spacing: -0.5px;
+    color: var(--dark); margin-bottom: 4px;
+  }
+  .hero p {
+    font-size: 15px; font-weight: 400; color: var(--gray2);
+    line-height: 1.4;
+  }
+
+  /* ── Container ── */
+  .container {
+    width: 100%; max-width: 400px;
+    padding: 24px 16px 40px;
+  }
+
+  /* ── Section ── */
+  .section { margin-bottom: 24px; }
+
+  /* ── KPI ── */
+  .kpi-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  }
+  .kpi {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 16px 12px;
+    text-align: center;
+  }
+  .kpi .lbl {
+    font-size: 11px; font-weight: 500; color: var(--gray3);
+    text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px;
+  }
+  .kpi .val {
+    font-size: 34px; font-weight: 700; letter-spacing: -0.8px;
+    line-height: 1.1; color: var(--dark);
+  }
+  .kpi .del {
+    font-size: 12px; font-weight: 500; margin-top: 4px;
+  }
+
+  .nps-input {
+    width: 100%; text-align: center; border: none;
+    font-size: 34px; font-weight: 700; font-family: inherit;
+    color: var(--dark); outline: none; background: transparent;
+    letter-spacing: -0.8px;
+  }
+  .nps-input::-webkit-inner-spin-button,
+  .nps-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+  .nps-input[type=number] { -moz-appearance: textfield; }
+
+  /* ── Calc Grid ── */
+  .calc-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  }
+  .calc-field {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 14px 12px 12px;
+    text-align: center;
+  }
+  .calc-field .flbl {
+    font-size: 12px; font-weight: 500; color: var(--gray3);
+    margin-bottom: 6px;
+  }
+  .calc-field input {
+    width: 100%; text-align: center; border: none;
+    font-size: 24px; font-weight: 700; font-family: inherit;
+    outline: none; background: transparent;
+    padding: 2px 0;
+    letter-spacing: -0.3px;
+    transition: color 0.1s;
+  }
+  .calc-field input::placeholder { color: var(--gray4); font-weight: 400; }
+  .calc-field input::-webkit-inner-spin-button,
+  .calc-field input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+  .calc-field input[type=number] { -moz-appearance: textfield; }
+
+  /* ── Color by field ── */
+  #npsP { color: var(--green); }
+  #npsPa { color: var(--orange); }
+  #npsD { color: var(--red); }
+  #npsTarget { color: var(--green); }
+
+  /* ── Result ── */
+  .result-box {
+    background: linear-gradient(135deg, #34C759 0%, #30D158 100%);
+    border-radius: 18px;
+    padding: 28px 16px;
+    text-align: center;
+    margin-top: 16px;
+  }
+  .result-box .rlbl {
+    font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.7);
+    margin-bottom: 2px;
+  }
+  .result-box .rnum {
+    font-size: 48px; font-weight: 700; color: #FFFFFF;
+    letter-spacing: -1px; line-height: 1.1;
+  }
+  .result-box .rnum.done { color: var(--green); }
+  .result-box .rhint {
+    font-size: 14px; color: rgba(255,255,255,0.7);
+    margin-top: 4px;
+  }
+
+  /* ── Reset ── */
+  .reset-btn {
+    display: block; width: 100%; margin-top: 16px;
+    padding: 13px; border: 1px solid var(--gray4); border-radius: 980px;
+    background: var(--white); color: var(--gray2);
+    font-size: 14px; font-weight: 500; font-family: inherit;
+    cursor: pointer; transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .reset-btn:active { background: var(--gray5); transform: scale(0.98); }
+
+  /* ── Divider ── */
+  .divider {
+    width: 100%; height: 1px; background: var(--gray4);
+    margin: 0 0 24px;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    font-size: 12px; color: var(--gray3);
+    text-align: center; margin-top: 24px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --dark: #F5F5F7; --gray2: #98989D; --gray3: #86868B;
+      --gray4: #424245; --gray5: #2C2C2E; --gray6: #1C1C1E;
+      --white: #2C2C2E;
+    }
+    .hero { background: linear-gradient(180deg, #222 0%, var(--gray6) 100%); border-bottom-color: var(--gray4); }
+  }
+</style>
+</head>
+<body>
+
+  <div class="hero">
+    <h1>NPS Count</h1>
+    <p>输入分数，自动计算还需多少 Promoter</p>
+  </div>
+
+  <div class="container">
+
+    <!-- KPI -->
+    <div class="section">
+      <div class="kpi-row">
+        <div class="kpi">
+          <div class="lbl">NPS</div>
+          <div class="val">
+            <input type="number" id="npsScore" class="nps-input" value=""
+                   inputmode="decimal" pattern="[0-9]*" oninput="calcNPS()">
+          </div>
+        </div>
+        <div class="kpi">
+          <div class="lbl">目标分数</div>
+          <div class="val">
+            <input type="number" id="npsTarget" class="nps-input" value=""
+                   inputmode="numeric" pattern="[0-9]*" oninput="calcNPS()">
+          </div>
+          <div class="del"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Calculator -->
+    <div class="section">
+      <div class="calc-grid">
+        <div class="calc-field">
+          <div class="flbl">Promoter</div>
+          <input type="number" id="npsP" value="0"
+                 inputmode="numeric" pattern="[0-9]*" oninput="calcNPS()"
+                 placeholder="0">
+        </div>
+        <div class="calc-field">
+          <div class="flbl">Passive</div>
+          <input type="number" id="npsPa" value="0"
+                 inputmode="numeric" pattern="[0-9]*" oninput="calcNPS()"
+                 placeholder="0">
+        </div>
+        <div class="calc-field">
+          <div class="flbl">Detractor</div>
+          <input type="number" id="npsD" value="0"
+                 inputmode="numeric" pattern="[0-9]*" oninput="calcNPS()"
+                 placeholder="0">
+        </div>
+        <div class="calc-field">
+          <div class="flbl">Response</div>
+          <div style="font-size:28px;font-weight:700;padding:2px 0;letter-spacing:-0.3px;" id="respValue">—</div>
+        </div>
+      </div>
+
+      <div class="result-box">
+        <div class="rlbl">还需</div>
+        <div class="rnum" id="npsNeed">—</div>
+        <div class="rhint">个 Promoter 达成目标</div>
+      </div>
+
+      <button class="reset-btn" onclick="resetAll()">清零</button>
+    </div>
+
+    <div class="footer">输入即计算</div>
+  </div>
+
+<script>
+function calcNPS() {
+  const target = parseFloat(document.getElementById('npsTarget').value) || 0;
+  const P = parseFloat(document.getElementById('npsP').value) || 0;
+  const Pa = parseFloat(document.getElementById('npsPa').value) || 0;
+  const D = parseFloat(document.getElementById('npsD').value) || 0;
+
+  const total = P + Pa + D;
+  document.getElementById('respValue').textContent = total || '—';
+
+  const needEl = document.getElementById('npsNeed');
+  if (!target || total === 0) {
+    needEl.textContent = '—';
+    needEl.className = 'rnum';
+    return;
+  }
+
+  if (((P - D) / total) * 100 >= target) {
+    needEl.textContent = '✓ 已达成';
+    needEl.className = 'rnum done';
+    return;
+  }
+
+  const need = Math.ceil((target/100 * total - P + D) / (1 - target/100));
+  needEl.textContent = need < 0 ? '—' : need;
+  needEl.className = 'rnum';
+}
+
+function resetAll() {
+  document.getElementById('npsScore').value = '';
+  document.getElementById('npsTarget').value = '';
+  ['npsP','npsPa','npsD'].forEach(id => document.getElementById(id).value = '0');
+  calcNPS();
+}
+
+calcNPS();
+</script>
+</body>
+</html>
